@@ -79,4 +79,4 @@ Made with ❤️ by **Noah (Klobow)**
 ---
 
 ### 📸 Preview
-![Preview UI](https://youtu.be/OPYVqaU3n48)
+https://youtu.be/OPYVqaU3n48
