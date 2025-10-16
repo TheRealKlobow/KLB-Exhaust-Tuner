@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>K-Exhaust Tuner • Klobow Audio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b131a;
+      --panel:#0e1a23;
+      --panel-2:#0a151d;
+      --text:#eaf6f4;
+      --muted:#9fb0bb;
+      --accent:#00e6b8;
+      --accent2:#7b5cff;
+      --chip:#111d27;
+      --border:rgba(255,255,255,.08);
+      --radius:18px;
+      --shadow:0 18px 60px rgba(3,10,18,.55);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:none; place-items:center;
+      /* Kun panelet – ingen sidebaggrund */
+      background: transparent;
+      color:var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    body.visible{display:grid}
+
+    .card{
+      width: 360px; max-width: 92vw;
+      background: linear-gradient(180deg, rgba(17,28,38,.92), rgba(13,22,30,.92));
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .header{text-align:center; margin-bottom:6px;}
+    .header .path{color:var(--muted); font-size:12px; opacity:.9}
+    .header h1{margin:6px 0 0; font-size:22px; letter-spacing:.2px}
+
+    .row{margin:10px 0}
+    label{display:block; font-weight:700; font-size:12px; opacity:.95; margin-bottom:8px}
+    .help{font-size:12px; color:var(--muted); margin-top:8px}
+
+    .select{position:relative}
+    select{
+      width:100%; appearance:none; -webkit-appearance:none;
+      background: var(--panel);
+      color:var(--text); border:1px solid var(--border);
+      border-radius:12px; height:38px; padding:0 38px 0 12px;
+      outline:none; transition: .2s border;
+    }
+    .select:after{
+      content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%);
+      color:var(--muted); font-size:14px; pointer-events:none;
+    }
+
+    .slider-wrap{position:relative; padding:2px 0 8px}
+    input[type=range]{
+      width:100%; height:4px; border-radius:999px; background:rgba(255,255,255,.12);
+      outline:none; -webkit-appearance:none;
+    }
+    input[type=range]::-webkit-slider-thumb{
+      -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+      background: linear-gradient(180deg, var(--accent), #16ffc6);
+      border: 0; box-shadow:0 4px 14px rgba(0,230,184,.45);
+      cursor:pointer;
+    }
+    input[type=range]::-moz-range-thumb{
+      width:18px; height:18px; border:none; border-radius:50%; background:var(--accent);
+      box-shadow:0 4px 14px rgba(0,230,184,.45);
+      cursor:pointer;
+    }
+
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      background:linear-gradient(180deg, #0f1c26, #0a1620);
+      border:1px solid var(--border); color:#cfe9e3; padding:6px 10px;
+      border-radius:999px; font-size:12px; font-weight:700;
+    }
+    .chip b{font-weight:800; padding:3px 8px; border-radius:999px; background:#0c1a23}
+
+    .bubble{position:absolute; right:0; top:-2px}
+
+    .preset-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:4px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      height:36px; padding:0 14px; border-radius:999px; border:1px solid var(--border);
+      background:linear-gradient(180deg, #0f1c26, #0a1620); color:#d8f5ee; font-weight:700; font-size:13px;
+      cursor:pointer; box-shadow:0 8px 26px rgba(4,12,18,.35); user-select:none; transition:.15s transform,.15s background;
+    }
+    .btn:hover:not([disabled]){transform:translateY(-1px)}
+    .btn:active:not([disabled]){transform:translateY(0)}
+    .btn.primary{background:linear-gradient(180deg, rgba(0,230,184,.18), rgba(0,230,184,.12)); border-color:rgba(0,230,184,.38)}
+    .btn[disabled]{opacity:.55; cursor:not-allowed; box-shadow:none; transform:none}
+
+    .actions{display:flex; gap:10px; margin-top:12px}
+    .actions .btn{flex:1}
+
+    .sep{height:1px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent); margin:12px 0}
+
+    .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%); padding:10px 14px; border-radius:999px; border:1px solid var(--border); background:linear-gradient(180deg,#11202b,#0c1821); color:#dff7f2; font-weight:700; box-shadow:0 10px 32px rgba(0,0,0,.4); opacity:0; transition:.2s; z-index:99;}
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <div class="header">
+      <div class="path" data-i18n="path">Klobow Audio • Exhaust Module</div>
+      <h1 data-i18n="title">K‑Exhaust Tuner</h1>
+    </div>
+
+    <div class="row">
+      <label for="valveMode" data-i18n="label-valve">Valve mode</label>
+      <div class="select"><select id="valveMode"></select></div>
+    </div>
+
+    <div class="row" id="autoRow">
+      <label for="autoStrategy" data-i18n="label-auto">Auto strategy</label>
+      <div class="select"><select id="autoStrategy"></select></div>
+    </div>
+
+    <div class="row">
+      <label for="tone" data-i18n="label-tone">Tone (dark → bright)</label>
+      <div class="slider-wrap">
+        <span class="chip bubble"><span>50%</span></span>
+        <input id="tone" type="range" min="0" max="100" value="50">
+      </div>
+      <div class="help" data-i18n="help-tone">Changes the colour/character of the sound. 0% = deep/boomy • 100% = bright/raspy</div>
+    </div>
+
+    <div class="row">
+      <label for="volume" data-i18n="label-volume">Exhaust volume</label>
+      <div class="slider-wrap">
+        <span class="chip bubble"><span>70%</span></span>
+        <input id="volume" type="range" min="0" max="100" value="70">
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="burble" data-i18n="label-burble">Burble intensity</label>
+      <div class="slider-wrap">
+        <span class="chip bubble"><span>30%</span></span>
+        <input id="burble" type="range" min="0" max="100" value="30">
+      </div>
+      <div class="help" data-i18n="help-burble">Off-throttle &amp; deceleration pops</div>
+    </div>
+
+    <div class="row">
+      <label for="crackle" data-i18n="label-crackle">Crackle length</label>
+      <div class="slider-wrap">
+        <span class="chip bubble"><span>20%</span></span>
+        <input id="crackle" type="range" min="0" max="100" value="20">
+      </div>
+      <div class="help" data-i18n="help-crackle">How long the crackle continues after throttle lift</div>
+    </div>
+
+    <div class="row">
+      <label for="idle" data-i18n="label-idle">Idle loudness</label>
+      <div class="slider-wrap">
+        <span class="chip bubble"><span>40%</span></span>
+        <input id="idle" type="range" min="0" max="100" value="40">
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row preset-row" id="presetRow"></div>
+
+    <div class="actions">
+      <button class="btn" id="save" data-i18n="btn-save">Save profile</button>
+      <button class="btn primary" id="apply" data-i18n="btn-apply">Apply</button>
+    </div>
+  </div>
+
+  <script>
+    const sliders = [
+      { id:'tone',    def:50 },
+      { id:'volume',  def:70 },
+      { id:'burble',  def:30 },
+      { id:'crackle', def:20 },
+      { id:'idle',    def:40 }
+    ];
+
+    const app = document.getElementById('app');
+    const presetRow = document.getElementById('presetRow');
+    const autoRow = document.getElementById('autoRow');
+    const valveSelect = document.getElementById('valveMode');
+    const autoSelect = document.getElementById('autoStrategy');
+    const btnSave = document.getElementById('save');
+    const btnApply = document.getElementById('apply');
+
+    const textMap = {
+      path: document.querySelector('[data-i18n="path"]'),
+      title: document.querySelector('[data-i18n="title"]'),
+      valve: document.querySelector('[data-i18n="label-valve"]'),
+      auto: document.querySelector('[data-i18n="label-auto"]'),
+      tone: document.querySelector('[data-i18n="label-tone"]'),
+      volume: document.querySelector('[data-i18n="label-volume"]'),
+      burble: document.querySelector('[data-i18n="label-burble"]'),
+      crackle: document.querySelector('[data-i18n="label-crackle"]'),
+      idle: document.querySelector('[data-i18n="label-idle"]'),
+      helpTone: document.querySelector('[data-i18n="help-tone"]'),
+      helpBurble: document.querySelector('[data-i18n="help-burble"]'),
+      helpCrackle: document.querySelector('[data-i18n="help-crackle"]'),
+      btnSave,
+      btnApply
+    };
+
+    const defaults = { valveMode:'auto', autoStrategy:'rpm', tone:50, volume:70, burble:30, crackle:20, idle:40 };
+    let presets = {};
+    let locale = null;
+    let isVisible = false;
+    let currentState = { ...defaults };
+
+    const send = (name, data = {}) => {
+      fetch(`https://klb_exhaustaudio/${name}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        body: JSON.stringify(data)
+      }).catch(() => {});
+    };
+
+    const setVisible = (state) => {
+      isVisible = state;
+      document.body.classList.toggle('visible', state);
+    };
+
+    const setSelectOptions = (el, options = [], value) => {
+      const previous = el.value;
+      el.innerHTML = '';
+      options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        el.appendChild(option);
+      });
+      const target = value || previous;
+      if (target) {
+        el.value = target;
+      }
+      if (el.selectedIndex === -1 && el.options.length > 0) {
+        el.selectedIndex = 0;
+      }
+    };
+
+    const updateSliderBubble = (el) => {
+      const bubble = el.parentElement.querySelector('.bubble span');
+      if (bubble) bubble.textContent = `${el.value}%`;
+    };
+
+    sliders.forEach(({id})=>{
+      const el = document.getElementById(id);
+      el.addEventListener('input', ()=>updateSliderBubble(el));
+      updateSliderBubble(el);
+    });
+
+    const setState = (state = {}) => {
+      currentState = Object.assign({}, defaults, state);
+      valveSelect.value = currentState.valveMode;
+      autoSelect.value = currentState.autoStrategy;
+      sliders.forEach(({id, def})=>{
+        const el = document.getElementById(id);
+        const value = typeof currentState[id] === 'number' ? currentState[id] : def;
+        el.value = value;
+        updateSliderBubble(el);
+      });
+    };
+
+    const getState = () => ({
+      valveMode: valveSelect.value,
+      autoStrategy: autoSelect.value,
+      tone: Number(document.getElementById('tone').value),
+      volume: Number(document.getElementById('volume').value),
+      burble: Number(document.getElementById('burble').value),
+      crackle: Number(document.getElementById('crackle').value),
+      idle: Number(document.getElementById('idle').value)
+    });
+
+    const flash = (text) => {
+      if (!text) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = text;
+      document.body.appendChild(toast);
+      requestAnimationFrame(()=>{ toast.style.opacity = 1; });
+      setTimeout(()=>{
+        toast.style.opacity = 0;
+        setTimeout(()=>toast.remove(), 220);
+      }, 1400);
+    };
+
+    const rebuildPresets = (buttons = []) => {
+      presetRow.innerHTML = '';
+      buttons.forEach(btn => {
+        const el = document.createElement('button');
+        el.className = 'btn' + (btn.primary ? ' primary' : '');
+        el.dataset.preset = btn.key;
+        el.textContent = btn.label;
+        el.addEventListener('click', ()=>{
+          const data = presets[btn.key];
+          if (!data) return;
+          setState(data);
+        });
+        presetRow.appendChild(el);
+      });
+    };
+
+    const applyLocale = (payload) => {
+      locale = payload;
+      if (!payload) return;
+      textMap.path.textContent = payload.headerPath || textMap.path.textContent;
+      textMap.title.textContent = payload.title || textMap.title.textContent;
+      const labels = payload.labels || {};
+      if (labels.valveMode) textMap.valve.textContent = labels.valveMode;
+      if (labels.autoStrategy) textMap.auto.textContent = labels.autoStrategy;
+      if (labels.tone) textMap.tone.textContent = labels.tone;
+      if (labels.volume) textMap.volume.textContent = labels.volume;
+      if (labels.burble) textMap.burble.textContent = labels.burble;
+      if (labels.crackle) textMap.crackle.textContent = labels.crackle;
+      if (labels.idle) textMap.idle.textContent = labels.idle;
+      const help = payload.help || {};
+      if (help.tone) textMap.helpTone.textContent = help.tone;
+      if (help.burble) textMap.helpBurble.textContent = help.burble;
+      if (help.crackle) textMap.helpCrackle.textContent = help.crackle;
+      const buttons = payload.buttons || {};
+      if (buttons.save) textMap.btnSave.textContent = buttons.save;
+      if (buttons.apply) textMap.btnApply.textContent = buttons.apply;
+      const options = payload.options || {};
+      setSelectOptions(valveSelect, options.valveMode || [], currentState.valveMode);
+      setSelectOptions(autoSelect, options.autoStrategy || [], currentState.autoStrategy);
+      if (autoRow) {
+        const autoOptions = options.autoStrategy || [];
+        autoRow.style.display = autoOptions.length > 1 ? '' : 'none';
+      }
+      presets = payload.presetData || presets;
+      rebuildPresets(payload.presets || []);
+    };
+
+    const withButtonLock = (button, handler, timeout = 450) => {
+      if (!button) return;
+      if (button.dataset.locked === '1') return;
+      button.dataset.locked = '1';
+      button.disabled = true;
+      try {
+        handler();
+      } finally {
+        setTimeout(()=>{
+          button.dataset.locked = '';
+          button.disabled = false;
+        }, timeout);
+      }
+    };
+
+    btnSave.addEventListener('click', ()=>{
+      withButtonLock(btnSave, ()=>{
+        send('saveProfile', getState());
+      });
+    });
+
+    btnApply.addEventListener('click', ()=>{
+      withButtonLock(btnApply, ()=>{
+        send('apply', getState());
+      }, 520);
+    });
+
+    window.addEventListener('message', (event)=>{
+      const data = event.data || {};
+      if (data.action === 'open'){
+        applyLocale(data.locale);
+        if (data.state) setState(data.state);
+        setVisible(true);
+      }else if (data.action === 'close'){
+        setVisible(false);
+      }else if (data.action === 'toast'){
+        flash(data.text);
+      }else if (data.action === 'updateState'){
+        if (data.state) setState(data.state);
+      }
+    });
+
+    const tryClose = () => {
+      if (!isVisible) return;
+      setVisible(false);
+      send('close');
+    };
+
+    window.addEventListener('keydown', (evt)=>{
+      if (evt.key === 'Escape'){
+        evt.preventDefault();
+        tryClose();
+      }
+    });
+  </script>
+</body>
+</html>
