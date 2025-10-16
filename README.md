@@ -1,6 +1,7 @@
 # 🔊 KLB Exhaust Tuner (Base Version)
 
-![KLB Exhaust Tuner Banner]([https://your-image-link-here.png](https://media.discordapp.net/attachments/605113506659958900/1428447036277260390/49548764-96f9-46b6-a7c2-2d56290e5295.png?ex=68f28878&is=68f136f8&hm=4ccb4b2043e5e795128773d5d99cbb205cc982f920851ac7cfed767135a6300d&=&format=webp&quality=lossless&width=1229&height=819))
+![KLB Exhaust Tuner](assets/klb-exhaust-tuner-1920x1080.png)
+
 
 **KLB Exhaust Tuner** is a lightweight, open-source **sound editor framework** for FiveM — fully built from scratch for **QBCore**.  
 This is the **base version**, laying the foundation for a complete exhaust sound system coming soon.  
