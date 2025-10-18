@@ -219,7 +219,7 @@
     let currentState = { ...defaults };
 
     const send = (name, data = {}) => {
-      fetch(`https://klb_exhaustaudio/${name}`, {
+      fetch(`https://KLB-Exhaust-Tuner/${name}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify(data)
