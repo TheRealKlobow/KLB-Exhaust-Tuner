@@ -77,7 +77,7 @@ Our mission is simple: make every script feel professional.
 Made with ❤️ by **Noah (Klobow)**  
 🔗 https://discord.gg/AwJsTYcpeY
 
--
+---
 
 ### 📸 Preview
 https://youtu.be/OPYVqaU3n48
